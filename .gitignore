@@ -1,0 +1,15 @@
+# NetBeans / Ant build output
+/build/
+/dist/
+/nbproject/private/
+*.class
+
+# Runtime data (created by the game)
+leaderboard.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sandbox files
+/src/yam/sandbox/

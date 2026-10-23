@@ -60,6 +60,5 @@ The board is a grid of hidden cells, and some of them contain mines.
 
 - **NetBeans:** open the project folder and press **F6** (Run Project). The main class is `yam.Main`.
 - **Command line (Ant):** `ant clean jar`, then `java -jar dist/yam.jar`.
-- **JDK:** `nbproject/project.properties` sets `javac.source/target=26`. Every member needs JDK 26 or newer,
-  or the team lowers both values together.
+- **JDK:** Every member needs JDK 21 or newer.
 - `leaderboard.txt` is created in the working directory (the project folder when run from NetBeans).

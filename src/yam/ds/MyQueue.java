@@ -15,12 +15,22 @@ public class MyQueue<T> {
     private int size;
 
     public MyQueue() {
-        // TODO: Start as an empty queue (front = rear = null, size = 0).
+        this.front = null;
+        this.rear = null;
+        this.size = 0;
     }
 
     /** Adds item at the rear. */
     public void enqueue(T item) {
-        // TODO: Link a new node after rear; also set front if the queue was empty.
+        Node<T> newNode = new Node<>(item);
+        if (isEmpty()) {
+            front = newNode;
+            rear = newNode;
+        } else {
+            rear.next = newNode;
+            rear = newNode;
+        }
+        size++;
     }
 
     /**
@@ -29,9 +39,16 @@ public class MyQueue<T> {
      * @throws NoSuchElementException if the queue is empty
      */
     public T dequeue() {
-        // TODO: Check for empty, move front to front.next and return the old front's data;
-        //       set rear to null if the queue becomes empty.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (isEmpty()) {
+            throw new NoSuchElementException("Queue is empty");
+        }
+        T data = front.data;
+        front = front.next;
+        size--;
+        if (front == null) {
+            rear = null;
+        }
+        return data;
     }
 
     /**
@@ -40,21 +57,23 @@ public class MyQueue<T> {
      * @throws NoSuchElementException if the queue is empty
      */
     public T peek() {
-        // TODO: Check for empty and return front.data.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (isEmpty()) {
+            throw new NoSuchElementException("Queue is empty");
+        }
+        return front.data;
     }
 
     public boolean isEmpty() {
-        // TODO: Return true if size is 0.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return size == 0;
     }
 
     public int size() {
-        // TODO: Return size.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return size;
     }
 
     public void clear() {
-        // TODO: Remove all items (front = rear = null, size = 0).
+        front = null;
+        rear = null;
+        size = 0;
     }
 }

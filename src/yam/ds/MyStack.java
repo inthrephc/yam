@@ -14,12 +14,16 @@ public class MyStack<T> {
     private int size;
 
     public MyStack() {
-        // TODO: Start as an empty stack (top = null, size = 0).
+        this.top = null;
+        this.size = 0;
     }
 
     /** Puts item on top of the stack. */
     public void push(T item) {
-        // TODO: Create a node pointing to the old top and make it the new top.
+        Node<T> newNode = new Node<>(item);
+        newNode.next = top;
+        top = newNode;
+        size++;
     }
 
     /**
@@ -28,8 +32,13 @@ public class MyStack<T> {
      * @throws NoSuchElementException if the stack is empty
      */
     public T pop() {
-        // TODO: Check for empty, move top to top.next and return the old top's data.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (isEmpty()) {
+            throw new NoSuchElementException("Stack is empty");
+        }
+        T data = top.data;
+        top = top.next;
+        size--;
+        return data;
     }
 
     /**
@@ -38,21 +47,22 @@ public class MyStack<T> {
      * @throws NoSuchElementException if the stack is empty
      */
     public T peek() {
-        // TODO: Check for empty and return top.data.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (isEmpty()) {
+            throw new NoSuchElementException("Stack is empty");
+        }
+        return top.data;
     }
 
     public boolean isEmpty() {
-        // TODO: Return true if size is 0.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return size == 0;
     }
 
     public int size() {
-        // TODO: Return size.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return size;
     }
 
     public void clear() {
-        // TODO: Remove all items (top = null, size = 0).
+        top = null;
+        size = 0;
     }
 }

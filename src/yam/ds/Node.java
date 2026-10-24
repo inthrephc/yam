@@ -11,6 +11,7 @@ class Node<T> {
     Node<T> next;
 
     Node(T data) {
-        // TODO: Store data (next stays null).
+        this.data = data;
+        this.next = null;
     }
 }

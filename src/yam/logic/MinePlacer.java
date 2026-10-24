@@ -20,20 +20,51 @@ public final class MinePlacer {
      * Does not compute the numbers: call {@code board.calculateAdjacentCounts()} afterwards.
      */
     public static void placeMines(Board board, int safeRow, int safeCol, Random random) {
-        // TODO: 1. Put the index (row * cols + col) of every cell outside the safe zone into an int[].
-        //          If there are fewer candidates than mines, use only the clicked cell as the safe zone.
-        //       2. Partial Fisher-Yates: for i in [0, mineCount) pick j = i + random.nextInt(n - i),
-        //          swap(candidates, i, j), then set a mine on the cell candidates[i]
-        //          (row = index / cols, col = index % cols).
+        int rows = board.getRows();
+        int cols = board.getCols();
+        int mineCount = board.getMineCount();
+
+        int[] candidates = collectCandidates(rows, cols, safeRow, safeCol, Constants.SAFE_FIRST_CLICK_NEIGHBORS);
+        if (candidates.length < mineCount) {
+            // Board too crowded: only the clicked cell stays safe.
+            candidates = collectCandidates(rows, cols, safeRow, safeCol, false);
+        }
+
+        int n = candidates.length;
+        for (int i = 0; i < mineCount; i++) {
+            int j = i + random.nextInt(n - i);
+            swap(candidates, i, j);
+            board.getCell(candidates[i] / cols, candidates[i] % cols).setMine(true);
+        }
+    }
+
+    /** Indices (row * cols + col) of every cell outside the safe zone. */
+    private static int[] collectCandidates(int rows, int cols, int safeRow, int safeCol, boolean includeNeighbors) {
+        int[] buffer = new int[rows * cols];
+        int n = 0;
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (!isInSafeZone(r, c, safeRow, safeCol, includeNeighbors)) {
+                    buffer[n++] = r * cols + c;
+                }
+            }
+        }
+        int[] result = new int[n];
+        System.arraycopy(buffer, 0, result, 0, n);
+        return result;
     }
 
     /** True if (row, col) is the safe cell, or one of its neighbors when includeNeighbors is true. */
     private static boolean isInSafeZone(int row, int col, int safeRow, int safeCol, boolean includeNeighbors) {
-        // TODO: Without neighbors: same position. With neighbors: |row - safeRow| <= 1 && |col - safeCol| <= 1.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (!includeNeighbors) {
+            return row == safeRow && col == safeCol;
+        }
+        return Math.abs(row - safeRow) <= 1 && Math.abs(col - safeCol) <= 1;
     }
 
     private static void swap(int[] array, int i, int j) {
-        // TODO: Swap array[i] and array[j].
+        int tmp = array[i];
+        array[i] = array[j];
+        array[j] = tmp;
     }
 }

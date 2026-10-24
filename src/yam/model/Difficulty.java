@@ -15,27 +15,26 @@ public enum Difficulty {
     private int mines;
 
     Difficulty(String displayName, int rows, int cols, int mines) {
-        // TODO: Assign all fields.
+        this.displayName = displayName;
+        this.rows = rows;
+        this.cols = cols;
+        this.mines = mines;
     }
 
     /** Name shown in menus and in the leaderboard, e.g. "Beginner". */
     public String getDisplayName() {
-        // TODO: Return displayName.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return displayName;
     }
 
     public int getRows() {
-        // TODO: Return rows.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return rows;
     }
 
     public int getCols() {
-        // TODO: Return cols.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return cols;
     }
 
     public int getMines() {
-        // TODO: Return mines.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return mines;
     }
 }

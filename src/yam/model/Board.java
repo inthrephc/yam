@@ -24,73 +24,108 @@ public class Board {
      *                                  in {@code [1, rows * cols - 1]}
      */
     public Board(int rows, int cols, int mineCount) {
-        // TODO: Validate the arguments, store them, and fill cells[r][c] with new Cell(r, c).
+        if (rows <= 0 || cols <= 0) {
+            throw new IllegalArgumentException("rows and cols must be positive: " + rows + "x" + cols);
+        }
+        if (mineCount < 1 || mineCount > rows * cols - 1) {
+            throw new IllegalArgumentException(
+                    "mineCount must be in [1, " + (rows * cols - 1) + "]: " + mineCount);
+        }
+        this.rows = rows;
+        this.cols = cols;
+        this.mineCount = mineCount;
+        this.revealedCount = 0;
+        this.cells = new Cell[rows][cols];
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                cells[r][c] = new Cell(r, c);
+            }
+        }
     }
 
     public int getRows() {
-        // TODO: Return rows.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return rows;
     }
 
     public int getCols() {
-        // TODO: Return cols.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return cols;
     }
 
     public int getMineCount() {
-        // TODO: Return mineCount.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return mineCount;
     }
 
     public int getRevealedCount() {
-        // TODO: Return revealedCount.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return revealedCount;
     }
 
     /** Number of cells without a mine: {@code rows * cols - mineCount}. */
     public int getSafeCellCount() {
-        // TODO: Return the value described above.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return rows * cols - mineCount;
     }
 
     /** True if (row, col) is inside the grid. */
     public boolean isInBounds(int row, int col) {
-        // TODO: Check 0 <= row < rows and 0 <= col < cols.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return row >= 0 && row < rows && col >= 0 && col < cols;
     }
 
     /**
      * @throws IndexOutOfBoundsException if (row, col) is outside the grid
      */
     public Cell getCell(int row, int col) {
-        // TODO: Check isInBounds, then return cells[row][col].
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (!isInBounds(row, col)) {
+            throw new IndexOutOfBoundsException("Cell (" + row + ", " + col + ") is outside the "
+                    + rows + "x" + cols + " board");
+        }
+        return cells[row][col];
     }
 
     /**
      * Returns the cells around (row, col) that exist: 8 inside the grid, 5 on an edge, 3 in a corner.
      */
     public MyLinkedList<Cell> getNeighbors(int row, int col) {
-        // TODO: For i in 0..7, check (row + Constants.NEIGHBOR_ROW_OFFSETS[i], col + Constants.NEIGHBOR_COL_OFFSETS[i])
-        //       with isInBounds and addLast the cell to a new MyLinkedList.
-        throw new UnsupportedOperationException("Not implemented yet");
+        MyLinkedList<Cell> neighbors = new MyLinkedList<>();
+        for (int i = 0; i < Constants.NEIGHBOR_ROW_OFFSETS.length; i++) {
+            int r = row + Constants.NEIGHBOR_ROW_OFFSETS[i];
+            int c = col + Constants.NEIGHBOR_COL_OFFSETS[i];
+            if (isInBounds(r, c)) {
+                neighbors.addLast(cells[r][c]);
+            }
+        }
+        return neighbors;
     }
 
     /** Number of mines among the neighbors of (row, col). */
     public int countAdjacentMines(int row, int col) {
-        // TODO: Count the neighbors where isMine() is true.
-        throw new UnsupportedOperationException("Not implemented yet");
+        int count = 0;
+        for (Cell neighbor : getNeighbors(row, col)) {
+            if (neighbor.isMine()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /** Number of flagged cells among the neighbors of (row, col). Used by chord. */
     public int countAdjacentFlags(int row, int col) {
-        // TODO: Count the neighbors where isFlagged() is true.
-        throw new UnsupportedOperationException("Not implemented yet");
+        int count = 0;
+        for (Cell neighbor : getNeighbors(row, col)) {
+            if (neighbor.isFlagged()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /** Stores countAdjacentMines(...) in every non-mine cell. Call once, right after the mines are placed. */
     public void calculateAdjacentCounts() {
-        // TODO: Loop over all cells; for each non-mine cell call setAdjacentMines(countAdjacentMines(r, c)).
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (!cells[r][c].isMine()) {
+                    cells[r][c].setAdjacentMines(countAdjacentMines(r, c));
+                }
+            }
+        }
     }
 
     /**
@@ -99,14 +134,16 @@ public class Board {
      * @return true if the cell was HIDDEN and is now REVEALED
      */
     public boolean revealCell(int row, int col) {
-        // TODO: Call getCell(row, col).reveal(); if it returns true, increment revealedCount.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (getCell(row, col).reveal()) {
+            revealedCount++;
+            return true;
+        }
+        return false;
     }
 
     /** True when every safe cell is revealed: the win condition. */
     public boolean allSafeCellsRevealed() {
-        // TODO: Compare revealedCount with getSafeCellCount().
-        throw new UnsupportedOperationException("Not implemented yet");
+        return revealedCount == getSafeCellCount();
     }
 
     /**
@@ -114,12 +151,26 @@ public class Board {
      * revealedCount is not updated (the game is already over).
      */
     public void revealAllMines() {
-        // TODO: For every cell that is a mine and not flagged, call cell.reveal().
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                Cell cell = cells[r][c];
+                if (cell.isMine() && !cell.isFlagged()) {
+                    cell.reveal();
+                }
+            }
+        }
     }
 
     /** Flags every mine that is still hidden. Called when the game is won. */
     public void flagAllMines() {
-        // TODO: For every hidden mine, call cell.toggleFlag().
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                Cell cell = cells[r][c];
+                if (cell.isMine() && cell.isHidden()) {
+                    cell.toggleFlag();
+                }
+            }
+        }
     }
 
     /**
@@ -127,7 +178,16 @@ public class Board {
      * {@link Cell#toDebugChar(boolean)} per cell, separated by spaces.
      */
     public String toDebugString(boolean revealAll) {
-        // TODO: Build the text with a StringBuilder (add '\n' after each row).
-        throw new UnsupportedOperationException("Not implemented yet");
+        StringBuilder sb = new StringBuilder();
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (c > 0) {
+                    sb.append(' ');
+                }
+                sb.append(cells[r][c].toDebugChar(revealAll));
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 }

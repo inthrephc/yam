@@ -17,64 +17,60 @@ public class Cell {
 
     /** Creates a hidden, mine-free cell at (row, col). */
     public Cell(int row, int col) {
-        // TODO: Store row and col; start HIDDEN, without a mine, 0 adjacent mines, not exploded.
+        this.row = row;
+        this.col = col;
+        this.mine = false;
+        this.adjacentMines = 0;
+        this.state = CellState.HIDDEN;
+        this.exploded = false;
     }
 
     public int getRow() {
-        // TODO: Return row.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return row;
     }
 
     public int getCol() {
-        // TODO: Return col.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return col;
     }
 
     public boolean isMine() {
-        // TODO: Return mine.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return mine;
     }
 
     public void setMine(boolean mine) {
-        // TODO: Store the value.
+        this.mine = mine;
     }
 
     public int getAdjacentMines() {
-        // TODO: Return adjacentMines.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return adjacentMines;
     }
 
     public void setAdjacentMines(int adjacentMines) {
-        // TODO: Store the value.
+        this.adjacentMines = adjacentMines;
     }
 
     public CellState getState() {
-        // TODO: Return state.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return state;
     }
 
     public boolean isHidden() {
-        // TODO: Return true if state is HIDDEN.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return state == CellState.HIDDEN;
     }
 
     public boolean isFlagged() {
-        // TODO: Return true if state is FLAGGED.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return state == CellState.FLAGGED;
     }
 
     public boolean isRevealed() {
-        // TODO: Return true if state is REVEALED.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return state == CellState.REVEALED;
     }
 
     public boolean isExploded() {
-        // TODO: Return exploded.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return exploded;
     }
 
     public void setExploded(boolean exploded) {
-        // TODO: Store the value.
+        this.exploded = exploded;
     }
 
     /**
@@ -84,8 +80,11 @@ public class Cell {
      * @return true if the state changed
      */
     public boolean reveal() {
-        // TODO: Change HIDDEN to REVEALED and return true; otherwise return false.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (state != CellState.HIDDEN) {
+            return false;
+        }
+        state = CellState.REVEALED;
+        return true;
     }
 
     /**
@@ -94,8 +93,15 @@ public class Cell {
      * @return true if the state changed
      */
     public boolean toggleFlag() {
-        // TODO: Switch HIDDEN and FLAGGED and return true; return false for a REVEALED cell.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (state == CellState.HIDDEN) {
+            state = CellState.FLAGGED;
+            return true;
+        }
+        if (state == CellState.FLAGGED) {
+            state = CellState.HIDDEN;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -104,7 +110,15 @@ public class Cell {
      * Else: {@code 'F'} if flagged, {@code '#'} if hidden.
      */
     public char toDebugChar(boolean revealAll) {
-        // TODO: Return the character described above.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (revealAll || state == CellState.REVEALED) {
+            if (mine) {
+                return '*';
+            }
+            if (adjacentMines == 0) {
+                return '.';
+            }
+            return (char) ('0' + adjacentMines);
+        }
+        return state == CellState.FLAGGED ? 'F' : '#';
     }
 }

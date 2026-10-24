@@ -19,7 +19,6 @@ public enum GameState {
 
     /** Returns true for WON and LOST. */
     public boolean isOver() {
-        // TODO: Return true if this state is WON or LOST.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return this == WON || this == LOST;
     }
 }

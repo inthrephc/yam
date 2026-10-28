@@ -24,13 +24,19 @@ public class Game {
 
     /** Creates a READY game with a random mine layout. */
     public Game(Difficulty difficulty) {
-        // TODO: Delegate to this(difficulty, new Random()).
+        this(difficulty, new Random());
     }
 
     /** Creates a READY game. Pass {@code new Random(seed)} to get the same mine layout every time (for testing). */
     public Game(Difficulty difficulty, Random random) {
-        // TODO: Store difficulty and random, create a Board with the difficulty's rows, cols and mines,
-        //       set state to READY and flagsPlaced to 0.
+        if (difficulty == null || random == null) {
+            throw new IllegalArgumentException("difficulty and random must not be null");
+        }
+        this.difficulty = difficulty;
+        this.random = random;
+        board = new Board(difficulty.getRows(), difficulty.getCols(), difficulty.getMines());
+        state = GameState.READY;
+        flagsPlaced = 0;
     }
 
     /**
@@ -44,8 +50,18 @@ public class Game {
      * </ul>
      */
     public void reveal(int row, int col) {
-        // TODO: Apply the guards above, call startGame(row, col) while READY,
-        //       then openCell(row, col) and checkWin().
+        if (isOver() || !board.isInBounds(row, col) || board.getCell(row, col).isFlagged()) {
+            return;
+        }
+        if (board.getCell(row, col).isRevealed()) {
+            chord(row, col);
+            return;
+        }
+        if (state == GameState.READY) {
+            startGame(row, col);
+        }
+        openCell(row, col);
+        checkWin();
     }
 
     /**
@@ -53,8 +69,13 @@ public class Game {
      * Allowed while READY or PLAYING; it does not place mines or start the timer.
      */
     public void toggleFlag(int row, int col) {
-        // TODO: Ignore if the game is over or out of bounds. If cell.toggleFlag() returns true,
-        //       add 1 to flagsPlaced when the cell is now flagged, otherwise subtract 1.
+        if (isOver() || !board.isInBounds(row, col)) {
+            return;
+        }
+        Cell cell = board.getCell(row, col);
+        if (cell.toggleFlag()) {
+            flagsPlaced += cell.isFlagged() ? 1 : -1;
+        }
     }
 
     /**
@@ -63,41 +84,49 @@ public class Game {
      * A wrong flag can make this open a mine and lose the game.
      */
     public void chord(int row, int col) {
-        // TODO: Only while PLAYING, on a REVEALED cell with adjacentMines > 0 and
-        //       board.countAdjacentFlags(row, col) == adjacentMines: openCell(...) every HIDDEN neighbor
-        //       (stop as soon as the game is lost), then checkWin().
+        if (state != GameState.PLAYING || !board.isInBounds(row, col)) {
+            return;
+        }
+        Cell cell = board.getCell(row, col);
+        if (!cell.isRevealed() || cell.getAdjacentMines() == 0
+                || board.countAdjacentFlags(row, col) != cell.getAdjacentMines()) {
+            return;
+        }
+        for (Cell neighbor : board.getNeighbors(row, col)) {
+            if (neighbor.isHidden()) {
+                openCell(neighbor.getRow(), neighbor.getCol());
+                if (state == GameState.LOST) {
+                    return;
+                }
+            }
+        }
+        checkWin();
     }
 
     public Board getBoard() {
-        // TODO: Return board.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return board;
     }
 
     public Difficulty getDifficulty() {
-        // TODO: Return difficulty.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return difficulty;
     }
 
     public GameState getState() {
-        // TODO: Return state.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return state;
     }
 
     /** True if the game is WON or LOST. */
     public boolean isOver() {
-        // TODO: Return state.isOver().
-        throw new UnsupportedOperationException("Not implemented yet");
+        return state.isOver();
     }
 
     public int getFlagsPlaced() {
-        // TODO: Return flagsPlaced.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return flagsPlaced;
     }
 
     /** Value for the mine counter: total mines minus flags placed (can be negative). */
     public int getRemainingMines() {
-        // TODO: Return board.getMineCount() - flagsPlaced.
-        throw new UnsupportedOperationException("Not implemented yet");
+        return board.getMineCount() - flagsPlaced;
     }
 
     /**
@@ -105,34 +134,55 @@ public class Game {
      * Never larger than {@link Constants#MAX_TIME_SECONDS}.
      */
     public int getElapsedSeconds() {
-        // TODO: Use startTimeMillis with System.currentTimeMillis() (PLAYING) or endTimeMillis (game over),
-        //       convert to whole seconds and cap at Constants.MAX_TIME_SECONDS.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (state == GameState.READY) {
+            return 0;
+        }
+        long now = isOver() ? endTimeMillis : System.currentTimeMillis();
+        long seconds = Math.max(0L, (now - startTimeMillis) / 1000L);
+        return (int) Math.min(seconds, Constants.MAX_TIME_SECONDS);
     }
 
     /** First reveal: place the mines around the safe cell, compute the numbers, start the timer. */
     private void startGame(int safeRow, int safeCol) {
-        // TODO: MinePlacer.placeMines(board, safeRow, safeCol, random); board.calculateAdjacentCounts();
-        //       startTimeMillis = System.currentTimeMillis(); state = PLAYING.
+        MinePlacer.placeMines(board, safeRow, safeCol, random);
+        board.calculateAdjacentCounts();
+        startTimeMillis = System.currentTimeMillis();
+        state = GameState.PLAYING;
     }
 
     /** Opens one hidden cell: a mine ends the game, a safe cell is opened with the flood fill. */
     private void openCell(int row, int col) {
-        // TODO: If the cell is a mine, handleLoss(cell). Otherwise call FloodFill.revealBfs or
-        //       FloodFill.revealDfs depending on Constants.USE_BFS_FLOOD_FILL.
+        Cell cell = board.getCell(row, col);
+        if (!cell.isHidden()) {
+            return;
+        }
+        if (cell.isMine()) {
+            handleLoss(cell);
+        } else if (Constants.USE_BFS_FLOOD_FILL) {
+            FloodFill.revealBfs(board, row, col);
+        } else {
+            FloodFill.revealDfs(board, row, col);
+        }
     }
 
     /** Switches to WON when every safe cell is revealed. */
     private void checkWin() {
-        // TODO: If state is still PLAYING and board.allSafeCellsRevealed(), call handleWin().
+        if (state == GameState.PLAYING && board.allSafeCellsRevealed()) {
+            handleWin();
+        }
     }
 
     private void handleWin() {
-        // TODO: state = WON; endTimeMillis = now; board.flagAllMines();
-        //       flagsPlaced = mine count (so the counter shows 0).
+        state = GameState.WON;
+        endTimeMillis = System.currentTimeMillis();
+        board.flagAllMines();
+        flagsPlaced = board.getMineCount();
     }
 
     private void handleLoss(Cell explodedCell) {
-        // TODO: state = LOST; endTimeMillis = now; explodedCell.setExploded(true); board.revealAllMines().
+        state = GameState.LOST;
+        endTimeMillis = System.currentTimeMillis();
+        explodedCell.setExploded(true);
+        board.revealAllMines();
     }
 }

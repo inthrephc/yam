@@ -25,19 +25,53 @@ public final class FloodFill {
      * @return number of cells newly revealed (0 if the start cell is not HIDDEN or is a mine)
      */
     public static int revealBfs(Board board, int startRow, int startCol) {
-        // TODO: 1. If the start cell is not HIDDEN or is a mine, return 0.
-        //       2. Reveal it with board.revealCell(...) and enqueue it into a MyQueue<Cell>.
-        //       3. While the queue is not empty: dequeue a cell; if its adjacentMines is 0, reveal and
-        //          enqueue every HIDDEN, non-mine neighbor (revealing before enqueueing marks it as visited).
-        //       4. Return how many cells were revealed.
-        throw new UnsupportedOperationException("Not implemented yet");
+        Cell start = board.getCell(startRow, startCol);
+        if (!start.isHidden() || start.isMine()) {
+            return 0;
+        }
+        MyQueue<Cell> queue = new MyQueue<>();
+        board.revealCell(startRow, startCol);
+        queue.enqueue(start);
+        int revealed = 1;
+        while (!queue.isEmpty()) {
+            Cell cell = queue.dequeue();
+            if (cell.getAdjacentMines() == 0) {
+                for (Cell neighbor : board.getNeighbors(cell.getRow(), cell.getCol())) {
+                    if (!neighbor.isMine() && board.revealCell(neighbor.getRow(), neighbor.getCol())) {
+                        // Revealing before enqueueing marks this cell as visited.
+                        queue.enqueue(neighbor);
+                        revealed++;
+                    }
+                }
+            }
+        }
+        return revealed;
     }
 
     /**
      * Depth-first flood fill using {@link MyStack}. Same contract as {@link #revealBfs}.
      */
     public static int revealDfs(Board board, int startRow, int startCol) {
-        // TODO: Same steps as revealBfs, but push/pop a MyStack<Cell> instead of using a queue.
-        throw new UnsupportedOperationException("Not implemented yet");
+        Cell start = board.getCell(startRow, startCol);
+        if (!start.isHidden() || start.isMine()) {
+            return 0;
+        }
+        MyStack<Cell> stack = new MyStack<>();
+        board.revealCell(startRow, startCol);
+        stack.push(start);
+        int revealed = 1;
+        while (!stack.isEmpty()) {
+            Cell cell = stack.pop();
+            if (cell.getAdjacentMines() == 0) {
+                for (Cell neighbor : board.getNeighbors(cell.getRow(), cell.getCol())) {
+                    if (!neighbor.isMine() && board.revealCell(neighbor.getRow(), neighbor.getCol())) {
+                        // Revealing before pushing marks this cell as visited.
+                        stack.push(neighbor);
+                        revealed++;
+                    }
+                }
+            }
+        }
+        return revealed;
     }
 }

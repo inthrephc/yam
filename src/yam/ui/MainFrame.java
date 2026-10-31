@@ -1,10 +1,20 @@
 package yam.ui;
 
+import java.awt.BorderLayout;
+import java.awt.event.KeyEvent;
+import java.time.LocalDate;
+import javax.swing.ButtonGroup;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.KeyStroke;
 import javax.swing.JMenuBar;
 import javax.swing.Timer;
 import yam.logic.Game;
 import yam.model.Difficulty;
+import yam.model.GameState;
 import yam.score.Leaderboard;
 import yam.score.ScoreEntry;
 import yam.util.Constants;
@@ -38,16 +48,28 @@ public class MainFrame extends JFrame implements CellActionListener {
 
     /** Builds the window, loads the leaderboard and starts a Beginner game. */
     public MainFrame() {
-        // TODO: setTitle(Constants.APP_TITLE); setDefaultCloseOperation(EXIT_ON_CLOSE); setResizable(false);
-        //       leaderboard = new Leaderboard(Constants.LEADERBOARD_FILE) and load() it;
-        //       initComponents(); initClockTimer(); startNewGame(Difficulty.BEGINNER); setLocationRelativeTo(null).
+        setTitle(Constants.APP_TITLE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setResizable(false);
+        leaderboard = new Leaderboard(Constants.LEADERBOARD_FILE);
+        if (!leaderboard.load()) {
+            JOptionPane.showMessageDialog(this, "Could not load best times.",
+                    "Best Times", JOptionPane.WARNING_MESSAGE);
+        }
+        initComponents();
+        initClockTimer();
+        startNewGame(Difficulty.BEGINNER);
+        setLocationRelativeTo(null);
     }
 
     /** Adds the menu bar, HeaderPanel (NORTH) and BoardPanel (CENTER). */
     private void initComponents() {
-        // TODO: setJMenuBar(createMenuBar());
-        //       headerPanel = new HeaderPanel(e -> startNewGame(game.getDifficulty()));
-        //       boardPanel = new BoardPanel(this); add both using BorderLayout.
+        setLayout(new BorderLayout());
+        setJMenuBar(createMenuBar());
+        headerPanel = new HeaderPanel(e -> startNewGame(game.getDifficulty()));
+        boardPanel = new BoardPanel(this);
+        add(headerPanel, BorderLayout.NORTH);
+        add(boardPanel, BorderLayout.CENTER);
     }
 
     /**
@@ -55,46 +77,98 @@ public class MainFrame extends JFrame implements CellActionListener {
      * Best Times..., Exit. Menu "Help": How to Play, About.
      */
     private JMenuBar createMenuBar() {
-        // TODO: Build the menus above and connect each item to the matching method.
-        throw new UnsupportedOperationException("Not implemented yet");
+        JMenuBar menuBar = new JMenuBar();
+        JMenu gameMenu = new JMenu("Game");
+        JMenuItem newItem = new JMenuItem("New");
+        newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+        newItem.addActionListener(e -> startNewGame(game.getDifficulty()));
+        gameMenu.add(newItem);
+        gameMenu.addSeparator();
+
+        ButtonGroup difficulties = new ButtonGroup();
+        for (Difficulty difficulty : Difficulty.values()) {
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(
+                    difficulty.getDisplayName(), difficulty == Difficulty.BEGINNER);
+            item.addActionListener(e -> startNewGame(difficulty));
+            difficulties.add(item);
+            gameMenu.add(item);
+        }
+
+        gameMenu.addSeparator();
+        JMenuItem bestTimes = new JMenuItem("Best Times...");
+        bestTimes.addActionListener(e -> showLeaderboard());
+        gameMenu.add(bestTimes);
+        JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener(e -> {
+            clockTimer.stop();
+            dispose();
+        });
+        gameMenu.add(exit);
+
+        JMenu helpMenu = new JMenu("Help");
+        JMenuItem howToPlay = new JMenuItem("How to Play");
+        howToPlay.addActionListener(e -> showHowToPlay());
+        helpMenu.add(howToPlay);
+        JMenuItem about = new JMenuItem("About");
+        about.addActionListener(e -> showAbout());
+        helpMenu.add(about);
+        menuBar.add(gameMenu);
+        menuBar.add(helpMenu);
+        return menuBar;
     }
 
     /** Creates the javax.swing.Timer that refreshes the timer label every CLOCK_REFRESH_MS. */
     private void initClockTimer() {
-        // TODO: clockTimer = new Timer(Constants.CLOCK_REFRESH_MS, e -> headerPanel.setTime(game.getElapsedSeconds())).
+        clockTimer = new Timer(Constants.CLOCK_REFRESH_MS,
+                e -> headerPanel.setTime(game.getElapsedSeconds()));
     }
 
     /** Starts a new game of the given difficulty and resizes the window to fit the new board. */
     public void startNewGame(Difficulty difficulty) {
-        // TODO: Stop clockTimer; game = new Game(difficulty); gameOverHandled = false;
-        //       boardPanel.buildGrid(rows, cols); refreshView(); pack().
+        clockTimer.stop();
+        game = new Game(difficulty);
+        gameOverHandled = false;
+        boardPanel.buildGrid(difficulty.getRows(), difficulty.getCols());
+        refreshView();
+        pack();
     }
 
     @Override
     public void onReveal(int row, int col) {
-        // TODO: game.reveal(row, col); afterPlayerAction().
+        game.reveal(row, col);
+        afterPlayerAction();
     }
 
     @Override
     public void onToggleFlag(int row, int col) {
-        // TODO: game.toggleFlag(row, col); afterPlayerAction().
+        game.toggleFlag(row, col);
+        afterPlayerAction();
     }
 
     @Override
     public void onChord(int row, int col) {
-        // TODO: game.chord(row, col); afterPlayerAction().
+        game.chord(row, col);
+        afterPlayerAction();
     }
 
     /** Runs after every click: refresh the view, start/stop the clock, detect the end of the game. */
     private void afterPlayerAction() {
-        // TODO: refreshView(); start clockTimer if the state is PLAYING and it is not running yet;
-        //       if game.isOver() and !gameOverHandled: stop clockTimer, then handleGameOver().
+        refreshView();
+        if (game.getState() == GameState.PLAYING && !clockTimer.isRunning()) {
+            clockTimer.start();
+        }
+        if (game.isOver() && !gameOverHandled) {
+            clockTimer.stop();
+            handleGameOver();
+        }
     }
 
     /** Copies the game state into the header (counter, time, face) and the board panel. */
     private void refreshView() {
-        // TODO: headerPanel.setMineCounter(game.getRemainingMines()); headerPanel.setTime(...);
-        //       headerPanel.setFace(game.getState()); boardPanel.refresh(game.getBoard(), game.getState()).
+        headerPanel.setMineCounter(game.getRemainingMines());
+        headerPanel.setTime(game.getElapsedSeconds());
+        headerPanel.setFace(game.getState());
+        boardPanel.refresh(game.getBoard(), game.getState());
     }
 
     /**
@@ -102,26 +176,39 @@ public class MainFrame extends JFrame implements CellActionListener {
      * then show the leaderboard. After a loss nothing else is needed (the board already shows the mines).
      */
     private void handleGameOver() {
-        // TODO: gameOverHandled = true. If WON and leaderboard.qualifies(difficulty, time):
-        //       name = promptPlayerName(); leaderboard.addScore(new ScoreEntry(name, difficulty, time, LocalDate.now()));
-        //       leaderboard.save(); showLeaderboard().
+        gameOverHandled = true;
+        if (game.getState() == GameState.WON
+                && leaderboard.qualifies(game.getDifficulty(), game.getElapsedSeconds())) {
+            String name = promptPlayerName();
+            leaderboard.addScore(new ScoreEntry(name, game.getDifficulty(),
+                    game.getElapsedSeconds(), LocalDate.now()));
+            if (!leaderboard.save()) {
+                JOptionPane.showMessageDialog(this, "Could not save best times.",
+                        "Best Times", JOptionPane.ERROR_MESSAGE);
+            }
+            showLeaderboard();
+        }
     }
 
     /** Asks for the player's name with JOptionPane; returns Constants.DEFAULT_PLAYER_NAME if cancelled or blank. */
     private String promptPlayerName() {
-        // TODO: Use JOptionPane.showInputDialog and handle null / blank input.
-        throw new UnsupportedOperationException("Not implemented yet");
+        String name = JOptionPane.showInputDialog(this, "Your name:",
+                "New Best Time", JOptionPane.QUESTION_MESSAGE);
+        return name == null || name.trim().isEmpty()
+                ? Constants.DEFAULT_PLAYER_NAME : name.trim();
     }
 
     private void showLeaderboard() {
-        // TODO: new LeaderboardDialog(this, leaderboard).setVisible(true).
+        new LeaderboardDialog(this, leaderboard).setVisible(true);
     }
 
     private void showHowToPlay() {
-        // TODO: JOptionPane.showMessageDialog(this, HOW_TO_PLAY_TEXT, "How to Play", INFORMATION_MESSAGE).
+        JOptionPane.showMessageDialog(this, HOW_TO_PLAY_TEXT,
+                "How to Play", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void showAbout() {
-        // TODO: JOptionPane.showMessageDialog(this, ABOUT_TEXT, "About", INFORMATION_MESSAGE).
+        JOptionPane.showMessageDialog(this, ABOUT_TEXT,
+                "About", JOptionPane.INFORMATION_MESSAGE);
     }
 }

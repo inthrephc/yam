@@ -1,9 +1,17 @@
 package yam.score;
-
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 import yam.ds.MyLinkedList;
 import yam.model.Difficulty;
 import yam.util.Constants;
-
 /**
  * Best times for every difficulty, saved to a text file between runs.
  * All entries are kept in ONE linked list sorted best first (via {@code MyLinkedList.addSorted});
@@ -14,32 +22,65 @@ public class Leaderboard {
     private MyLinkedList<ScoreEntry> entries;
     private String filePath;
 
-    /** Creates an empty leaderboard backed by filePath. Call {@link #load()} to read the file. */
+    /**
+     * Creates a new leaderboard that will be saved to the given file path.
+     * @param filePath is the path to the file where the leaderboard will be saved and loaded from
+     */
     public Leaderboard(String filePath) {
-        // TODO: Store filePath and create an empty MyLinkedList.
+        this.filePath = filePath;
+        this.entries = new MyLinkedList<>();
     }
 
-    /** True if a win in timeSeconds would enter the top list of this difficulty. */
+    /**
+     * Checks if a score qualifies for the leaderboard: either there are less than {@link Constants#LEADERBOARD_SIZE}
+     * @param difficulty is the difficulty of the game
+     * @param timeSeconds is the time in seconds
+     * @return true if the score qualifies for the leaderboard, false otherwise 
+     */
     public boolean qualifies(Difficulty difficulty, int timeSeconds) {
-        // TODO: True if this difficulty has fewer than Constants.LEADERBOARD_SIZE entries,
-        //       or timeSeconds is strictly smaller than its worst (last) time.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (difficulty == null || timeSeconds < 0) {
+            throw new IllegalArgumentException("Arguments cannot be null or negative");
+        }
+        int count = 0; // Count the number of entries for the specified difficulty
+        int worstTime = 0; // Track the worst time for the specified difficulty
+        /* Count entries of the specified difficulty and track the worst time */
+        for (ScoreEntry entry : entries) {
+            if (entry.getDifficulty() == difficulty) {
+                count++;
+                worstTime = entry.getTimeSeconds();
+            }
+        }
+        /* Return true if the entry qualifies for the leaderboard */
+        return count < Constants.LEADERBOARD_SIZE || timeSeconds < worstTime;
     }
 
-    /** Inserts the entry at its sorted position, then drops the worst entries of its difficulty beyond the limit. */
+    /**
+     * Adds a new score entry to the leaderboard if it qualifies. If the leaderboard already has
+     * @param entry is the score entry to be added
+     */
     public void addScore(ScoreEntry entry) {
-        // TODO: entries.addSorted(entry, Comparator.naturalOrder()); then trim(entry.getDifficulty()).
+        if (entry == null) {
+            throw new IllegalArgumentException("Entry cannot be null");
+        }
+        /* Add the entry in sorted order and then trim the leaderboard for its difficulty */
+        entries.addSorted(entry, Comparator.<ScoreEntry>naturalOrder());
+        trim(entry.getDifficulty());
     }
 
     /** Entries of one difficulty, best first, in a new list (the internal list is not exposed). */
     public MyLinkedList<ScoreEntry> getTopScores(Difficulty difficulty) {
-        // TODO: Iterate entries and addLast the ones with this difficulty to a new list.
-        throw new UnsupportedOperationException("Not implemented yet");
+        MyLinkedList<ScoreEntry> topScores = new MyLinkedList<>();
+        for (ScoreEntry entry : entries) {
+            if (entry.getDifficulty() == difficulty) {
+                topScores.addLast(entry);
+            }
+        }
+        return topScores;
     }
 
     /** Removes every entry (the file is not changed until {@link #save()}). */
     public void clear() {
-        // TODO: entries.clear().
+        entries.clear();
     }
 
     /**
@@ -49,10 +90,35 @@ public class Leaderboard {
      * @return false if the file exists but could not be read
      */
     public boolean load() {
-        // TODO: clear(); return true if the file does not exist. Otherwise read it line by line
-        //       (BufferedReader in try-with-resources), addScore(ScoreEntry.fromFileLine(line)) for each
-        //       line and skip lines that throw IllegalArgumentException. Return false on IOException.
-        throw new UnsupportedOperationException("Not implemented yet");
+        clear();
+        if (filePath == null) {
+            throw new IllegalArgumentException("File path cannot be null");
+        }
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return true; // Missing file means empty leaderboard
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
+                while ((line = reader.readLine()) != null) {
+                    if (line.trim().isEmpty()) {
+                        continue; // Skip empty lines
+                    }
+                    try {
+                        addScore(ScoreEntry.fromFileLine(line));
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Skipping malformed line: " + line);
+                    }
+                }
+            }
+            return true; // Successfully loaded
+        } catch (IOException e) {
+            System.err.println("Error reading leaderboard file: " + e.getMessage());
+            return false; // I/O error
+        }
+        return true;
     }
 
     /**
@@ -61,19 +127,54 @@ public class Leaderboard {
      * @return false on an I/O error
      */
     public boolean save() {
-        // TODO: Write with a BufferedWriter/PrintWriter in try-with-resources; return false on IOException.
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (filePath == null) {
+            throw new IllegalArgumentException("File path cannot be null");
+        }
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8))) {
+            for (ScoreEntry entry : entries) {
+                writer.write(entry.toFileLine());
+                writer.newLine();
+            }
+            return true; // Successfully saved
+        } catch (IOException e) {
+            System.err.println("Error writing leaderboard file: " + e.getMessage());
+            return false; // I/O error
+        }
     }
 
     /** Number of stored entries for one difficulty. */
     private int countEntries(Difficulty difficulty) {
-        // TODO: Count the entries whose difficulty matches.
-        throw new UnsupportedOperationException("Not implemented yet");
+        int count = 0;
+        for (ScoreEntry entry : entries) {
+            if (entry.getDifficulty() == difficulty) {
+                count++;
+            }
+        }
+        return count;
     }
 
-    /** Removes the worst entries of a difficulty until at most LEADERBOARD_SIZE remain. */
+    /**
+     * Trims the leaderboard to at most {@link Constants#LEADERBOARD_SIZE} entries for the given difficulty.
+     * The worst entries are removed first.
+     * @param difficulty
+     */
     private void trim(Difficulty difficulty) {
-        // TODO: Walk the list with an index and a counter for this difficulty; when the counter
-        //       goes over LEADERBOARD_SIZE, entries.remove(index) (and do not advance the index).
+        if (countEntries(difficulty) <= Constants.LEADERBOARD_SIZE) {
+            return; // No trimming needed
+        }
+        int index = 0; // Start from the beginning of the list
+        int seen = 0; // Count how many entries of the specified difficulty have been seen
+        while (index < entries.size()) {
+            ScoreEntry entry = entries.get(index);
+            if (entry.getDifficulty() == difficulty) {
+                seen++;
+                /* If we have seen more entries of this difficulty than the allowed size, remove the current one     */
+                if (seen > Constants.LEADERBOARD_SIZE) {
+                    entries.remove(index); // Remove the worst entry
+                    continue; // Do not increment index, as the list has shifted
+                }
+            }
+            index++;
+        }
     }
 }

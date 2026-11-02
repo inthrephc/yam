@@ -6,7 +6,6 @@ import yam.util.Constants;
 
 /**
  * One leaderboard record. Natural order is best first: shorter time, then earlier date.
- * <p>
  * File format, one entry per line: {@code name;DIFFICULTY;timeSeconds;yyyy-MM-dd},
  * e.g. {@code Alice;BEGINNER;42;2026-10-22}.
  */

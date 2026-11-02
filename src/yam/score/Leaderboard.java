@@ -96,29 +96,25 @@ public class Leaderboard {
         }
         File file = new File(filePath);
         if (!file.exists()) {
-            return true; // Missing file means empty leaderboard
+            return true; 
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8);
-                while ((line = reader.readLine()) != null) {
-                    if (line.trim().isEmpty()) {
-                        continue; // Skip empty lines
-                    }
-                    try {
-                        addScore(ScoreEntry.fromFileLine(line));
-                    } catch (IllegalArgumentException e) {
-                        System.err.println("Skipping malformed line: " + line);
-                    }
+                if (line.trim().isEmpty()) {
+                    continue; 
+                }
+                try {
+                    addScore(ScoreEntry.fromFileLine(line));
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Skipping malformed line: " + line);
                 }
             }
-            return true; // Successfully loaded
+            return true; 
         } catch (IOException e) {
             System.err.println("Error reading leaderboard file: " + e.getMessage());
-            return false; // I/O error
+            return false; 
         }
-        return true;
     }
 
     /**

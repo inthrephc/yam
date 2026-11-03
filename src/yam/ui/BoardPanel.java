@@ -1,6 +1,9 @@
 package yam.ui;
 
+import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.SwingUtilities;
 import javax.swing.JPanel;
 import yam.model.Board;
 import yam.model.GameState;
@@ -15,25 +18,55 @@ public class BoardPanel extends JPanel {
     private CellActionListener listener;
 
     public BoardPanel(CellActionListener listener) {
-        // TODO: Store the listener.
+        this.listener = listener;
     }
 
     /** (Re)creates rows x cols buttons in a GridLayout. Call it whenever a new game starts. */
     public void buildGrid(int rows, int cols) {
-        // TODO: removeAll(); setLayout(new GridLayout(rows, cols)); create every CellButton,
-        //       addMouseListener(createMouseHandler(r, c)) and add it; finally revalidate() and repaint().
+        removeAll();
+        setLayout(new GridLayout(rows, cols));
+        buttons = new CellButton[rows][cols];
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                CellButton button = new CellButton(row, col);
+
+                button.addMouseListener(createMouseHandler(row, col));
+
+                buttons[row][col] = button;
+                add(button);
+            }
+        }
+
+        revalidate();
+        repaint();
     }
 
     /** Re-renders every button from the model. */
     public void refresh(Board board, GameState state) {
-        // TODO: For every cell: buttons[r][c].render(board.getCell(r, c), state).
+        for (int row = 0; row < buttons.length; row++) {
+            for (int col = 0; col < buttons[row].length; col++) {
+                buttons[row][col].render(board.getCell(row, col), state);
+            }
+        }
     }
 
     /** Mouse handler for one button: left = reveal, right = flag, middle = chord. */
     private MouseAdapter createMouseHandler(int row, int col) {
-        // TODO: Return a MouseAdapter whose mouseReleased(...) uses SwingUtilities.isLeftMouseButton /
-        //       isRightMouseButton / isMiddleMouseButton to call the matching listener method.
-        //       (An ActionListener is not enough: it only reports left clicks.)
-        throw new UnsupportedOperationException("Not implemented yet");
+        return new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (!e.getComponent().contains(e.getPoint())) {
+                    return;
+                }
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    listener.onReveal(row, col);
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    listener.onToggleFlag(row, col);
+                } else if (SwingUtilities.isMiddleMouseButton(e)) {
+                    listener.onChord(row, col);
+                }
+            }
+        };
     }
 }

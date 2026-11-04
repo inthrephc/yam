@@ -1,8 +1,10 @@
 package yam.ui;
 
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.BorderFactory;
 import javax.swing.SwingUtilities;
 import javax.swing.JPanel;
 import yam.model.Board;
@@ -19,6 +21,10 @@ public class BoardPanel extends JPanel {
 
     public BoardPanel(CellActionListener listener) {
         this.listener = listener;
+        setBackground(new Color(192, 192, 192));
+        setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLoweredBevelBorder(),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
     }
 
     /** (Re)creates rows x cols buttons in a GridLayout. Call it whenever a new game starts. */

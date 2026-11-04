@@ -45,7 +45,7 @@ public final class Constants {
     public static final String APP_TITLE = "Minesweeper";
 
     /** Width and height of one cell button, in pixels. */
-    public static final int CELL_SIZE_PX = 30;
+    public static final int CELL_SIZE_PX = 24;
 
     /** How often the timer label is refreshed, in milliseconds. */
     public static final int CLOCK_REFRESH_MS = 200;

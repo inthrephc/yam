@@ -19,9 +19,9 @@ import yam.util.Constants;
  */
 public class HeaderPanel extends JPanel {
 
-    public static final String FACE_PLAYING = ":)";
-    public static final String FACE_WON = "B)";
-    public static final String FACE_LOST = "X(";
+    public static final String FACE_PLAYING = "☺";
+    public static final String FACE_WON = "😎";
+    public static final String FACE_LOST = "☹";
 
     private static final int MIN_DISPLAY_VALUE = -99;
     private static final int MAX_DISPLAY_VALUE = Constants.MAX_TIME_SECONDS; // 999
@@ -30,7 +30,7 @@ public class HeaderPanel extends JPanel {
     private static final Color LED_FOREGROUND = new Color(255, 40, 40);
     private static final Color PANEL_BACKGROUND = new Color(192, 192, 192);
     private static final Font LED_FONT = new Font(Font.MONOSPACED, Font.BOLD, 26);
-    private static final Font FACE_FONT = new Font(Font.MONOSPACED, Font.BOLD, 16);
+    private static final Font FACE_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 20);
 
     private JLabel mineCounterLabel;
     private JLabel timerLabel;
@@ -43,7 +43,7 @@ public class HeaderPanel extends JPanel {
         super(new BorderLayout());
         setBackground(PANEL_BACKGROUND);
         setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLoweredBevelBorder(),
+                BorderFactory.createRaisedBevelBorder(),
                 BorderFactory.createEmptyBorder(5, 6, 5, 6)));
 
         mineCounterLabel = createLedLabel();
@@ -51,8 +51,10 @@ public class HeaderPanel extends JPanel {
 
         faceButton = new JButton(FACE_PLAYING);
         faceButton.setFont(FACE_FONT);
-        faceButton.setPreferredSize(new Dimension(46, 36));
+        faceButton.setPreferredSize(new Dimension(40, 36));
         faceButton.setMargin(new Insets(0, 0, 0, 0));
+        faceButton.setBackground(PANEL_BACKGROUND);
+        faceButton.setBorder(BorderFactory.createRaisedBevelBorder());
         faceButton.setFocusable(false);        // keep keyboard focus off the button
         if (onNewGame != null) {
             faceButton.addActionListener(onNewGame);

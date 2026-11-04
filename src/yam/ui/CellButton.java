@@ -33,9 +33,9 @@ public class CellButton extends JButton {
     public static final Color EXPLODED_BACKGROUND = new Color(255, 0, 0);
 
     // Plain text works with every font; it can be replaced with icons later.
-    public static final String FLAG_TEXT = "F";
-    public static final String MINE_TEXT = "*";
-    public static final String WRONG_FLAG_TEXT = "X";
+    public static final String FLAG_TEXT = "⚑";
+    public static final String MINE_TEXT = "●";
+    public static final String WRONG_FLAG_TEXT = "✕";
 
     private int row;
     private int col;
@@ -49,7 +49,10 @@ public class CellButton extends JButton {
         );
         setFocusPainted(false);
         setMargin(new Insets(0, 0, 0, 0));
-        setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
+        setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
+        setBackground(HIDDEN_BACKGROUND);
+        setOpaque(true);
+        setContentAreaFilled(true);
     }
 
     public int getRow() {
@@ -79,8 +82,10 @@ public class CellButton extends JButton {
         if (cell.isFlagged()) {
             if (state == GameState.LOST && !cell.isMine()) {
                 setText(WRONG_FLAG_TEXT);
+                setForeground(new Color(160, 0, 0));
             } else {
                 setText(FLAG_TEXT);
+                setForeground(new Color(200, 0, 0));
             }
             return;
         }
@@ -90,10 +95,11 @@ public class CellButton extends JButton {
         }
 
         setBackground(REVEALED_BACKGROUND);
-        setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        setBorder(BorderFactory.createLineBorder(new Color(150, 150, 150)));
 
         if (cell.isMine()) {
             setText(MINE_TEXT);
+            setForeground(Color.BLACK);
 
             if (cell.isExploded()) {
                 setBackground(EXPLODED_BACKGROUND);

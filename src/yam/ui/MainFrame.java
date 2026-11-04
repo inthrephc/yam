@@ -36,7 +36,21 @@ public class MainFrame extends JFrame implements CellActionListener {
             + "The first click is always safe. Opening a mine ends the game.";
 
     private static final String ABOUT_TEXT
-            = "Minesweeper clone\nCSD201 - Data Structures and Algorithms team project.";
+            = "Yet Another Minesweeper"
+            + "\n"
+            + "CSD201 - Data Structures and Algorithms Assignment."
+            + "\n\n"
+            + "Prepared by Group 2:"
+            + "\n"
+            + "- Nguyen Sy Nguyen"
+            + "\n"
+            + "- Nguyen Duy Khanh"
+            + "\n"
+            + "- Nguyen Bao Toan"
+            + "\n"
+            + "- Truong Gia Han"
+            + "\n"
+            + "- Nguyen Thanh Son";
 
     private Game game;
     private Leaderboard leaderboard;
@@ -95,9 +109,9 @@ public class MainFrame extends JFrame implements CellActionListener {
         }
 
         gameMenu.addSeparator();
-        JMenuItem bestTimes = new JMenuItem("Best Times...");
-        bestTimes.addActionListener(e -> showLeaderboard());
-        gameMenu.add(bestTimes);
+        JMenuItem leaderboard = new JMenuItem("Leaderboard");
+        leaderboard.addActionListener(e -> showLeaderboard());
+        gameMenu.add(leaderboard);
         JMenuItem exit = new JMenuItem("Exit");
         exit.addActionListener(e -> {
             clockTimer.stop();
